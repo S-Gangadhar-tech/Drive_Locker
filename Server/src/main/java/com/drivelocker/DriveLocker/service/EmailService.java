@@ -5,7 +5,6 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -21,35 +20,37 @@ public class EmailService {
     @Value("${spring.mail.properties.mail.smtp.from}")
     private String fromEmail;
 
+    /**
+     * Sends a welcome email using an HTML template.
+     *
+     * @param toEmail The recipient's email address.
+     * @param name    The recipient's name for personalization.
+     */
     public void sendWelcomeEmail(String toEmail, String name) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(toEmail);
-        message.setFrom(fromEmail);
-        message.setSubject("Welcome to our Platform");
-        message.setText("Hello " + name + ",\n\nThanks for registering with us\n\nRegards, \nAuthify team");
-        mailSender.send(message);
+        MimeMessage message = mailSender.createMimeMessage();
+
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(toEmail);
+            helper.setFrom(fromEmail);
+            helper.setSubject("Welcome to DriveLocker!");
+
+            // Prepare the Thymeleaf context
+            Context context = new Context();
+            context.setVariable("name", name); // Pass the name to the template
+
+            // Process the template
+            String htmlContent = templateEngine.process("welcome", context);
+            helper.setText(htmlContent, true); // true indicates this is an HTML email
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            // It's a good practice to log the error
+            System.err.println("Failed to send welcome email: " + e.getMessage());
+            // Optionally rethrow as a custom runtime exception
+        }
     }
 
-//    public void sendResetOtpEmail(String toEmail,String otp){
-
-    /// /        System.out.println(toEmail);
-//        SimpleMailMessage message =new SimpleMailMessage();
-//        message.setTo(toEmail);
-//        message.setFrom(fromEmail);
-//        message.setSubject("Password Reset OTP");
-//        message.setText("OTP to reset password is : "+otp);
-//        mailSender.send(message);
-//
-//    }
-//
-//    public void sendOtpEmail(String toEmail,String otp){
-//        SimpleMailMessage message =new SimpleMailMessage();
-//        message.setTo(toEmail);
-//        message.setFrom(fromEmail);
-//        message.setSubject("Account Verify OTP");
-//        message.setText("OTP to Verify account is : "+otp);
-//        mailSender.send(message);
-//    }
     public void sendOtpEmail(String toEmail, String otp) {
         sendHtmlEmail(toEmail, "Email Verification", "VerifyEmail", otp);
     }
@@ -78,9 +79,8 @@ public class EmailService {
 
             mailSender.send(message);
         } catch (MessagingException e) {
-           System.out.println(e.getMessage());
+            System.err.println("Failed to send HTML email: " + e.getMessage());
             // Optionally log or rethrow a custom exception
         }
     }
-
 }
