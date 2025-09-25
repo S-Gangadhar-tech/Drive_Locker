@@ -8,7 +8,7 @@ import java.util.List;
 public interface IFileService {
     public String fileUpload(String email,String passkey,MultipartFile file);
 
-    public List<File> getUserFiles(String email) throws Exception;
+    public List<File> getUserFiles(String email, String passkey) throws Exception;
 
 
 

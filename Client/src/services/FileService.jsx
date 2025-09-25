@@ -18,22 +18,22 @@ const fileUpload = async (file, passkey) => {
                 'Content-Type': 'multipart/form-data',
             },
         });
-        return response.data; // The success message
+        return response; // The success message
     } catch (error) {
         throw error.response?.data || 'An error occurred during file upload.';
     }
 };
 
-const getUserFiles = async () => {
+const getUserFiles = async (passkey) => {
     try {
-        const response = await axios.get(`${API_URL}/`);
-        console.log("files fetched " + response.data);
-
+        // Pass the passkey as a query parameter in the GET request
+        const response = await axios.get(`${API_URL}/get-files`, {
+            params: { passkey }
+        });
         return response.data; // List of files
     } catch (error) {
-        console.log("error fetching");
-
-        throw error.response?.data || 'Failed to retrieve user files.';
+        // Re-throw the specific error message from the backend
+        throw error.response?.data || { message: 'Failed to retrieve user files.' };
     }
 };
 

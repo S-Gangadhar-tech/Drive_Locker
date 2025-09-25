@@ -1,54 +1,30 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import FileService from "../services/FileService";
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 import { AppContext } from './AppContext';
-import { AppConstants } from "../Util/constants";
 
-// Create a context
 const FileContext = createContext();
-
 export const useFiles = () => useContext(FileContext);
 
 export const FileProvider = ({ children }) => {
-    const BackendURL = AppConstants.BACKEND_URL;
     const { userData } = useContext(AppContext);
-    const [files, setFiles] = useState([]);
+    const [files, setFiles] = useState(null); // Use null to signify "not yet fetched"
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [sessionPasskey, setSessionPasskey] = useState('');
     const navigate = useNavigate();
 
-    // Fetch files once when userData becomes available
+    // On initial load, check session storage for a saved passkey
     useEffect(() => {
-        if (userData) {
-            fetchUserFiles();
+        const storedPasskey = sessionStorage.getItem('drive_locker_passkey');
+        if (storedPasskey) {
+            // If found, try to fetch files automatically
+            fetchUserFiles(storedPasskey);
         }
-    }, [userData]);
+    }, []); // Empty array ensures this runs only once on mount
 
     const hasPasskey = userData ? userData.hasPasskey : null;
-
-    const sendVerificationOtp = async () => {
-        setLoading(true); // Start loading
-        setError(null);
-        try {
-            axios.defaults.withCredentials = true;
-            const res = await axios.post(`${BackendURL}/auth/send-otp`);
-            if (res.status === 200) {
-                navigate("/email-verify");
-                toast.success("OTP sent successfully");
-            } else {
-                toast.error("Unable to send OTP");
-            }
-        } catch (error) {
-            console.error(error);
-            const errorMessage = error.response?.data?.message || "Failed to send OTP";
-            toast.error(errorMessage);
-            setError(errorMessage);
-        } finally {
-            setLoading(false); // Stop loading
-        }
-    };
 
     const checkPasskeyAndRedirect = () => {
         if (hasPasskey === false) {
@@ -59,43 +35,55 @@ export const FileProvider = ({ children }) => {
         return false;
     };
 
-    const fetchUserFiles = async () => {
-        if (checkPasskeyAndRedirect()) return;
+    const fetchUserFiles = async (passkey) => {
+        if (checkPasskeyAndRedirect()) return false;
 
         setLoading(true);
         setError(null);
         try {
-            const data = await FileService.getUserFiles();
+            const data = await FileService.getUserFiles(passkey);
             setFiles(data);
+
+            // On success, save the valid passkey to state and session storage
+            setSessionPasskey(passkey);
+            sessionStorage.setItem('drive_locker_passkey', passkey);
+
+            toast.success("Files unlocked successfully!");
+            return true; // Return success status
         } catch (err) {
-            if (err.status === 401) {
-                toast.info("Please verify your email to use this service");
-                await sendVerificationOtp();
-            } else {
-                setError(err.response?.data?.message || "Failed to fetch files");
-            }
+            const errorMessage = err.message || "Failed to fetch files. Invalid passkey?";
+            toast.error(errorMessage);
+            setError(errorMessage);
+            setFiles(null); // Keep files null on failure to allow retry
+            sessionStorage.removeItem('drive_locker_passkey'); // Clear invalid key
+            return false; // Return failure status
         } finally {
             setLoading(false);
         }
     };
 
-    const handleFileUpload = async (file, passkey) => {
+    const handleFileUpload = async (file) => {
         if (checkPasskeyAndRedirect()) return;
+        if (!sessionPasskey) {
+            toast.error("Passkey not available. Please unlock your files first.");
+            return;
+        }
 
         setLoading(true);
         setError(null);
         try {
-            const response = await FileService.fileUpload(file, passkey);
-            await fetchUserFiles();
-            return response;
-        } catch (err) {
-            if (err.status === 401) {
-                toast.info("Please verify your email to use this service");
-                await sendVerificationOtp();
+            const response = await FileService.fileUpload(file, sessionPasskey);
+            if (response && response.status === 200) {
+                toast.success("File uploaded successfully!");
+                // Automatically refresh the file list using the saved passkey
+                await fetchUserFiles(sessionPasskey);
             } else {
-                setError(err.response?.data?.message || "File upload failed");
+                toast.error("File upload failed. Please try again.");
             }
-            throw err;
+        } catch (err) {
+            const errorMessage = err.message || "File upload failed";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -107,17 +95,16 @@ export const FileProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await FileService.deleteFiles(publicIds);
+            await FileService.deleteFiles(publicIds);
+            // Instantly update UI by filtering out deleted files
             setFiles(currentFiles =>
                 currentFiles.filter(file => !publicIds.includes(file.publicId))
             );
-            toast.success(response.message || "Files deleted successfully.");
-            return response;
+            toast.success("Selected files deleted successfully.");
         } catch (err) {
-            const errorMessage = err.response?.data?.message || "File deletion failed";
+            const errorMessage = err.message || "File deletion failed";
             setError(errorMessage);
             toast.error(errorMessage);
-            throw err;
         } finally {
             setLoading(false);
         }

@@ -10,13 +10,13 @@ import Loader from "../Components/Loader";
 const Layout = () => {
     // 1. Destructure 'isLoading' from each context and give it a unique name
     const { isLoading: authIsLoading } = useContext(AppContext);
-    const { isLoading: notesIsLoading } = useContext(NotesContext);
+
 
     // 2. Call your custom hook directly
     const { loading: fileIsLoading } = useFiles();
 
     // 3. Combine the loading states with the OR (||) operator
-    const isAnyLoading = authIsLoading || notesIsLoading || fileIsLoading;
+    const isAnyLoading = authIsLoading || fileIsLoading;
     useEffect(() => {
         // This will log every time the value changes
         console.log('isAnyLoading changed to:', isAnyLoading);

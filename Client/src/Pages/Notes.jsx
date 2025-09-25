@@ -4,14 +4,22 @@ import Note from "../Components/NoteListItem";
 import CustomButton from "../Util/Button";
 import NoteUtil from "../Util/NoteUtil";
 
-const NotesService = () => {
+// RENAMED from NotesService to NotesPage for clarity
+const NotesPage = () => {
     const [showNoteForm, setShowNoteForm] = useState(false);
     const [editingNote, setEditingNote] = useState(null);
     const [selectedNoteIds, setSelectedNoteIds] = useState([]);
     const [selectMode, setSelectMode] = useState(false);
 
-    const { notes,deleteNotes } = useContext(NotesContext);
+    const { notes, isLoading, deleteNotes, fetchNotes } = useContext(NotesContext);
 
+    // ✅ CRITICAL FIX: This now runs only ONCE on component mount, stopping the infinite loop.
+    useEffect(() => {
+        const loadNotes = async () => {
+            await fetchNotes();
+        };
+        loadNotes();
+    }, [fetchNotes]); // Depends on the stable fetchNotes function
 
     const handleCreateClick = () => {
         setEditingNote(null);
@@ -47,12 +55,13 @@ const NotesService = () => {
         setSelectMode(!selectMode);
     };
 
-    const primaryStyles =
-        "px-6 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold shadow-lg transition-all duration-300 ease-in-out text-base";
-    const secondaryStyles =
-        "px-6 py-3 rounded-lg bg-gray-700 text-white hover:bg-gray-600 font-semibold shadow-lg transition-all duration-300 ease-in-out text-base";
-    const deleteStyles =
-        "px-6 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold shadow-lg transition-all duration-300 ease-in-out text-base disabled:bg-red-800 disabled:opacity-70 disabled:cursor-not-allowed";
+    const primaryStyles = "px-6 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold shadow-lg transition-all duration-300 ease-in-out text-base";
+    const secondaryStyles = "px-6 py-3 rounded-lg bg-gray-700 text-white hover:bg-gray-600 font-semibold shadow-lg transition-all duration-300 ease-in-out text-base";
+    const deleteStyles = "px-6 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold shadow-lg transition-all duration-300 ease-in-out text-base disabled:bg-red-800 disabled:opacity-70 disabled:cursor-not-allowed";
+
+    if (isLoading && notes.length === 0) {
+        return <p className="text-center text-gray-400">Loading notes...</p>;
+    }
 
     return (
         <div className="bg-gray-950/80 backdrop-blur-md rounded-2xl border border-gray-800 p-8 max-w-4xl mx-auto min-h-[30vh] text-gray-200">
@@ -80,11 +89,7 @@ const NotesService = () => {
             </div>
 
             <div className="flex flex-wrap gap-4 justify-center">
-                <CustomButton
-                    text="Create New Note"
-                    handleOnclick={handleCreateClick}
-                    className={primaryStyles}
-                />
+                <CustomButton text="Create New Note" handleOnclick={handleCreateClick} className={primaryStyles} />
 
                 {selectMode && (
                     <CustomButton
@@ -104,11 +109,9 @@ const NotesService = () => {
                 )}
             </div>
 
-            {showNoteForm && (
-                <NoteUtil note={editingNote} onClose={handleFormClose} />
-            )}
+            {showNoteForm && <NoteUtil note={editingNote} onClose={handleFormClose} />}
         </div>
     );
 };
 
-export default NotesService;
+export default NotesPage;

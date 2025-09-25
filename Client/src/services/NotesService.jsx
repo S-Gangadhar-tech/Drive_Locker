@@ -1,65 +1,45 @@
-import axios from "axios";
+import apiClient from "./apiClient"; // Import our new centralized client
 import { toast } from "react-toastify";
 
-const handleApiError = (error, defaultMsg) => {
-    console.error(defaultMsg, error);
-    const msg = error.response?.data?.message || defaultMsg;
-    toast.error(msg);
-    return Promise.reject(error);
-};
-
 const notesService = {
-    fetchNotes: async (BackendURL) => {
+    // No more BackendURL parameter needed!
+    fetchNotes: async () => {
         try {
-            const response = await axios.get(`${BackendURL}/notes/get-notes`);
+            const response = await apiClient.get("/notes/get-notes");
             return response.data;
         } catch (error) {
+            // This is a special case for business logic, so we keep the try/catch here
             if (error.response?.status === 404) {
-                toast.info("No notes found. Create a new one!");
-                return [];
+                return []; // Return empty array if no notes are found
             }
-            return handleApiError(error, "Error fetching notes.");
+            // All other errors are handled by the interceptor automatically
+            throw error;
         }
     },
 
-    createNote: async (BackendURL, newNote) => {
-        try {
-            const response = await axios.post(
-                `${BackendURL}/notes/create-notes`,
-                newNote
-            );
-            toast.success("Note created successfully! 📝");
-            return response.data;
-        } catch (error) {
-            return handleApiError(error, "Failed to create note.");
-        }
+    // No more try/catch for error toasts!
+    createNote: async (newNote) => {
+
+        console.log(newNote + " creating this note");
+
+        const response = await apiClient.post("/notes/create-notes", newNote);
+        toast.success("Note created successfully! 📝");
+        return response.data;
     },
 
-    updateNote: async (BackendURL, id, updatedData) => {
-        try {
-            const noteToUpdate = { ...updatedData, id };
-            const response = await axios.put(
-                `${BackendURL}/notes/update-notes`,
-                noteToUpdate
-            );
-            toast.success("Note updated successfully!");
-            return response.data;
-        } catch (error) {
-            return handleApiError(error, "Failed to update note.");
-        }
+    updateNote: async (id, updatedData) => {
+        const noteToUpdate = { ...updatedData, id };
+        const response = await apiClient.put("/notes/update-notes", noteToUpdate);
+        toast.success("Note updated successfully!");
+        return response.data;
     },
 
-    deleteNotes: async (BackendURL, idsToDelete) => {
-        try {
-            const idsAsString = idsToDelete.map(String);
-            await axios.delete(`${BackendURL}/notes/delete-notes`, {
-                data: idsAsString,
-            });
-            toast.success("Selected notes deleted successfully! ✔️");
-            return true;
-        } catch (error) {
-            return handleApiError(error, "Failed to delete notes.");
-        }
+    deleteNotes: async (idsToDelete) => {
+        const idsAsString = idsToDelete.map(String);
+        await apiClient.delete("/notes/delete-notes", {
+            data: idsAsString,
+        });
+        toast.success("Selected notes deleted successfully! ✔️");
     },
 };
 

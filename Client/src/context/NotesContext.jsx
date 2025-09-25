@@ -8,16 +8,14 @@ import { AppConstants } from "../Util/constants";
 export const NotesContext = createContext();
 
 export const NotesProvider = ({ children }) => {
-    console.log("NotesProvider rendered");
     const BackendURL = AppConstants.BACKEND_URL;
     const [notes, setNotes] = useState([]);
     const [isLoading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const sendVerificationOtp = useCallback(async () => {
+        setLoading(true);
         try {
-            console.log("sendVerificationOtp function recreated");
-            setLoading(true);
             axios.defaults.withCredentials = true;
             const res = await axios.post(`${BackendURL}/auth/send-otp`);
             if (res.status === 200) {
@@ -36,21 +34,20 @@ export const NotesProvider = ({ children }) => {
 
     const handleGlobalApiError = useCallback(
         async (error) => {
-            console.log("handleGlobalApiError function recreated");
             if (error.response?.status === 401) {
                 toast.info("Please verify your email to use this service");
                 await sendVerificationOtp();
             } else {
-                toast.error(error.response?.data?.message || "An error occurred");
+                // The API service already shows a toast, so no need to show another one here.
+                console.error("A global API error occurred:", error);
             }
         },
         [sendVerificationOtp]
     );
 
     const fetchNotes = useCallback(async () => {
+        setLoading(true);
         try {
-            console.log("fetchNotes function recreated");
-            setLoading(true);
             const fetchedNotes = await notesService.fetchNotes(BackendURL);
             setNotes(fetchedNotes);
         } catch (error) {
@@ -62,10 +59,9 @@ export const NotesProvider = ({ children }) => {
 
     const createNote = useCallback(
         async (newNote) => {
+            setLoading(true);
             try {
-                console.log("createNote function recreated");
-                setLoading(true);
-                const createdNote = await notesService.createNote(BackendURL, newNote);
+                const createdNote = await notesService.createNote(newNote);
                 setNotes((prev) => [...prev, createdNote]);
             } catch (error) {
                 await handleGlobalApiError(error);
@@ -78,18 +74,10 @@ export const NotesProvider = ({ children }) => {
 
     const updateNote = useCallback(
         async (id, updatedData) => {
+            setLoading(true);
             try {
-                console.log("updateNote function recreated");
-
-                setLoading(true);
-                const updatedNote = await notesService.updateNote(
-                    BackendURL,
-                    id,
-                    updatedData
-                );
-                setNotes((prev) =>
-                    prev.map((note) => (note.id === id ? updatedNote : note))
-                );
+                const updatedNote = await notesService.updateNote(id, updatedData);
+                setNotes((prev) => prev.map((note) => (note.id === id ? updatedNote : note)));
             } catch (error) {
                 await handleGlobalApiError(error);
             } finally {
@@ -101,25 +89,24 @@ export const NotesProvider = ({ children }) => {
 
     const deleteNotes = useCallback(
         async (idsToDelete) => {
+            setLoading(true);
             try {
-                console.log("deleteNote function recreated");
-                setLoading(true);
-                await notesService.deleteNotes(BackendURL, idsToDelete);
-                await fetchNotes();
+                await notesService.deleteNotes(idsToDelete);
+                // Update state locally for instant UI feedback instead of re-fetching
+                setNotes((prev) => prev.filter((note) => !idsToDelete.includes(note.id)));
             } catch (error) {
                 await handleGlobalApiError(error);
             } finally {
                 setLoading(false);
             }
         },
-        [BackendURL, fetchNotes, handleGlobalApiError]
+        [BackendURL, handleGlobalApiError]
     );
 
     const value = useMemo(
         () => ({
             notes,
             isLoading,
-            setLoading,
             fetchNotes,
             createNote,
             updateNote,
@@ -128,7 +115,5 @@ export const NotesProvider = ({ children }) => {
         [notes, isLoading, fetchNotes, createNote, updateNote, deleteNotes]
     );
 
-    return (
-        <NotesContext.Provider value={value}>{children}</NotesContext.Provider>
-    );
+    return <NotesContext.Provider value={value}>{children}</NotesContext.Provider>;
 };
