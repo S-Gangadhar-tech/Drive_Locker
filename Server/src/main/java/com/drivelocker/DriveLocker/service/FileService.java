@@ -1,11 +1,6 @@
 package com.drivelocker.DriveLocker.service;
 
-import com.drivelocker.DriveLocker.exceptions.FileNotFoundException;
-import com.drivelocker.DriveLocker.exceptions.FileStorageException;
-import com.drivelocker.DriveLocker.exceptions.InvalidCredentialsException;
-import com.drivelocker.DriveLocker.exceptions.InvalidPasskeyException;
-import com.drivelocker.DriveLocker.exceptions.MissingDetailsException;
-import com.drivelocker.DriveLocker.exceptions.UserNotFoundException;
+import com.drivelocker.DriveLocker.exceptions.*;
 import com.drivelocker.DriveLocker.models.File;
 import com.drivelocker.DriveLocker.models.PassKey;
 import com.drivelocker.DriveLocker.models.User;
@@ -33,14 +28,6 @@ public class FileService implements IFileService {
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
 
-    /**
-     * A private helper method to fetch a user by email and verify if their account is active.
-     * Throws exceptions if the user is not found or the account is not verified.
-     * @param email The email of the user to fetch and verify.
-     * @return The verified User object.
-     * @throws UserNotFoundException if no user is found with the given email.
-     * @throws InvalidCredentialsException if the user's account is not verified.
-     */
     private User getAndVerifyUser(String email) {
         if (email == null) {
             throw new UserNotFoundException("No user found.");
@@ -57,7 +44,6 @@ public class FileService implements IFileService {
 
     @Override
     public String fileUpload(String email, String passkey, MultipartFile file) {
-        // Fetch and verify the user first
         User user = getAndVerifyUser(email);
 
         PassKey userPasskey = passkeyRepository.findByUserEmail(email)
@@ -84,7 +70,6 @@ public class FileService implements IFileService {
                 LocalDateTime createdAt = Instant.parse(createdAtString).atZone(ZoneId.systemDefault()).toLocalDateTime();
                 newFile.setCreatedAt(createdAt);
 
-                // Set the user object that was already fetched and verified
                 newFile.setUser(user);
 
                 fileRepository.save(newFile);
@@ -97,15 +82,30 @@ public class FileService implements IFileService {
         }
     }
 
+    // ✅ METHOD UPDATED
     @Override
-    public List<File> getUserFiles(String email) {
-        // Ensures user is valid and verified
+    public List<File> getUserFiles(String email, String passkey) {
+        // 1. Ensures user is valid and verified
         getAndVerifyUser(email);
 
+        // 2. Fetch the stored passkey for the user
+        PassKey userPasskey = passkeyRepository.findByUserEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Passkey not created for " + email));
+
+        // 3. Match the provided passkey with the stored one
+        boolean isMatched = passwordEncoder.matches(passkey, userPasskey.getPassKey());
+
+        if (!isMatched) {
+            throw new InvalidPasskeyException("Invalid passkey provided. Access to files denied.");
+        }
+
+        // 4. If passkey is valid, proceed to fetch files
         List<File> filesList = fileRepository.findByUserEmail(email);
 
         if (filesList.isEmpty()) {
-            throw new FileNotFoundException("No files found for user: " + email);
+            // Note: Returning an empty list is often better than throwing an exception here,
+            // as having no files is a valid state.
+            return filesList;
         }
         return filesList;
     }
@@ -121,13 +121,11 @@ public class FileService implements IFileService {
         }
 
         try {
-            // Delete from cloud first
             Map<String, Object> result = cloudinaryService.deleteFiles(publicIds);
 
             @SuppressWarnings("unchecked")
             Map<String, String> deletedFiles = (Map<String, String>) result.get("deleted");
 
-            // Verify all requested IDs were deleted
             boolean allDeleted = publicIds.stream()
                     .allMatch(id -> "deleted".equalsIgnoreCase(deletedFiles.get(id)));
 
@@ -141,5 +139,4 @@ public class FileService implements IFileService {
             throw new FileStorageException("File deletion failed: " + e.getMessage(), e);
         }
     }
-
 }

@@ -53,12 +53,14 @@ public class FilesController {
             @ApiResponse(responseCode = "404", description = "No files found for the user"),
             @ApiResponse(responseCode = "401", description = "Unauthorized access")
     })
-    @GetMapping("/")
-    public ResponseEntity<List<File>> getUserFiles(@CurrentSecurityContext(expression = "authentication?.name") String email) {
-        List<File> fileList = fileService.getUserFiles(email);
+    @GetMapping("/get-files") // Recommended to use a specific path
+    public ResponseEntity<List<File>> getUserFiles(
+            @CurrentSecurityContext(expression = "authentication?.name") String email,
+            @RequestParam("passkey") String passkey
+    ) {
+        List<File> fileList = fileService.getUserFiles(email, passkey);
         return ResponseEntity.ok(fileList);
     }
-
     @Operation(summary = "Delete user files", description = "Deletes one or more files based on their public IDs.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Files deleted successfully",
