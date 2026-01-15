@@ -7,7 +7,7 @@
 ## 🚀 Live Demo
 
 * **Frontend:** [https://drivelocker-ui.vgcodes.online/](https://drivelocker-ui.vgcodes.online/)
-* **Backend API:** [https://drivelocker-apii.vgcodes.online/](https://drivelocker-apii.vgcodes.online/)
+* **Backend API:** [https://drivelocker-api.vgcodes.online/api/v1.0/swagger-ui/index.html#/](https://drivelocker-api.vgcodes.online/api/v1.0/swagger-ui/index.html#/)
 
 ---
 
