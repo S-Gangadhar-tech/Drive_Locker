@@ -1,9 +1,7 @@
-// src/context/AppContext.js
 import { createContext, useEffect, useState } from "react";
-import { AppConstants } from "../Util/constants";
-import authService from "../services/AuthService";
+import { AppConstants } from "../utils/constants";
+import * as authApi from "../api/auth";
 import axios from "axios";
-// import Loader from "../Components/Loader"
 
 export const AppContext = createContext();
 
@@ -11,31 +9,30 @@ export const AppContextProvider = (props) => {
     const BackendURL = AppConstants.BACKEND_URL;
     const [isLoggedin, setIsLoggedin] = useState(false);
     const [userData, setUserData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true); // New loading state
+    const [isLoading, setIsLoading] = useState(true);
 
     axios.defaults.withCredentials = true;
 
     const getUserdata = async () => {
         try {
-            setIsLoading(true)
-            const userProfile = await authService.getProfile(BackendURL);
+            setIsLoading(true);
+            const userProfile = await authApi.getProfile();
             if (userProfile) {
                 setUserData(userProfile);
-                // console.log(userProfile);
             } else {
                 setUserData(null);
             }
         } catch (error) {
             setUserData(null);
         } finally {
-            setIsLoading(false); // Set loading to false after all checks, regardless of outcome
+            setIsLoading(false);
         }
     };
 
     const initializeAuth = async () => {
         try {
-            setIsLoading(true)
-            const isLoggedInResult = await authService.isAuthenticated(BackendURL);
+            setIsLoading(true);
+            const isLoggedInResult = await authApi.isAuthenticated();
             setIsLoggedin(isLoggedInResult);
 
             if (isLoggedInResult) {
@@ -47,14 +44,13 @@ export const AppContextProvider = (props) => {
             setIsLoggedin(false);
             setUserData(null);
         } finally {
-            setIsLoading(false); // Set loading to false after all checks, regardless of outcome
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
         initializeAuth();
     }, []);
-
 
     const contextValue = {
         BackendURL,
@@ -65,10 +61,7 @@ export const AppContextProvider = (props) => {
         setUserData,
         isLoading,
         setIsLoading,
-        // Add isLoading to context value for other components to use
     };
-
-    // --- Conditional rendering based on loading state ---
 
     return (
         <AppContext.Provider value={contextValue}>

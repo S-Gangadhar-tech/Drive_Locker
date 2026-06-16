@@ -1,15 +1,16 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./Pages/Layout";
-import Login from "./Pages/Login";
-import EmailVerify from "./Pages/EmailVerify";
-import ResetPassword from "./Pages/ResetPassword";
-import Home from "./Pages/Home";
+import Layout from "./pages/Layout";
+import Login from "./pages/Login";
+import EmailVerify from "./pages/EmailVerify";
+import ResetPassword from "./pages/ResetPassword";
+import Home from "./pages/Home";
 import { useContext } from "react";
 import { AppContext } from "./context/AppContext";
-import Files from "./Pages/Files";
-import CreatePasskey from "./Pages/CreatePasskey";
-import Features from "./Pages/Features";
-import Notes from "./Pages/Notes";
+import Files from "./pages/Files";
+import CreatePasskey from "./pages/CreatePasskey";
+import Features from "./pages/Features";
+import Notes from "./pages/Notes";
+import Profile from "./pages/Profile";
 
 const ProtectedRoute = ({ children }) => {
   const { isLoggedin } = useContext(AppContext);
@@ -60,7 +61,7 @@ const App = () => {
           }
         />
         <Route
-          path="/Features"
+          path="/features"
           element={
             <ProtectedRoute>
               <Features />
@@ -68,7 +69,7 @@ const App = () => {
           }
         />
         <Route
-          path="/Notes"
+          path="/notes"
           element={
             <ProtectedRoute>
               <Notes />
@@ -76,7 +77,7 @@ const App = () => {
           }
         />
         <Route
-          path="/Createpasskey"
+          path="/create-passkey"
           element={
             <ProtectedRoute>
               <CreatePasskey />
@@ -84,10 +85,18 @@ const App = () => {
           }
         />
         <Route
-          path="/Files"
+          path="/files"
           element={
             <ProtectedRoute>
               <Files />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />
