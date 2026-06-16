@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useCallback } from 'react';
 import { FileContext } from '../context/FileContext';
 import * as filesApi from '../api/files';
 import { toast } from 'react-toastify';
@@ -16,14 +16,14 @@ export const useFiles = () => {
     const { userData } = useContext(AppContext);
     const navigate = useNavigate();
 
-    const checkPasskeyAndRedirect = () => {
+    const checkPasskeyAndRedirect = useCallback(() => {
         if (userData && userData.hasPasskey === false) {
             toast.info("Please create a passkey to use this service.");
             navigate("/create-passkey");
             return true;
         }
         return false;
-    };
+    }, [userData, navigate]);
 
     const fetchUserFiles = async (passkey) => {
         if (checkPasskeyAndRedirect()) return false;
@@ -49,25 +49,29 @@ export const useFiles = () => {
         }
     };
 
-    const handleFileUpload = async (file) => {
+    const handleFileUpload = async (file, passkey) => {
         if (checkPasskeyAndRedirect()) return;
-        if (!sessionPasskey) {
-            toast.error("Passkey not available. Please unlock your files first.");
+
+        // Strict guard: passkey must be a non-null, non-blank, non-whitespace string
+        if (!passkey || typeof passkey !== 'string' || passkey.trim().length === 0) {
+            toast.error("Passkey is required and cannot be empty.");
             return;
         }
 
         setLoading(true);
         setError(null);
         try {
-            const response = await filesApi.uploadFile(file, sessionPasskey);
+            const response = await filesApi.uploadFile(file, passkey);
             if (response && response.status === 200) {
                 toast.success("File uploaded successfully!");
-                await fetchUserFiles(sessionPasskey);
+                // Re-fetch files using the confirmed session passkey
+                const activePasskey = sessionPasskey || passkey;
+                await fetchUserFiles(activePasskey);
             } else {
                 toast.error("File upload failed. Please try again.");
             }
         } catch (err) {
-            const errorMessage = err.response?.data?.message || "File upload failed";
+            const errorMessage = err.response?.data?.message || "File upload failed. Invalid passkey?";
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
@@ -103,6 +107,7 @@ export const useFiles = () => {
         fetchUserFiles,
         handleFileUpload,
         handleDeleteFiles,
+        checkPasskeyAndRedirect,
     };
 };
 export default useFiles;

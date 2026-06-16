@@ -1,12 +1,28 @@
 import React, { useState, useRef } from 'react';
-import { FiUploadCloud, FiFile, FiX } from 'react-icons/fi';
+import { useForm } from 'react-hook-form';
+import { FiUploadCloud, FiFile, FiX, FiKey, FiShield } from 'react-icons/fi';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
+/**
+ * FileUploadForm
+ * Requires the user to select a file AND confirm their passkey
+ * before uploading. The passkey is validated server-side during
+ * the upload request — this ensures an extra security confirmation
+ * for every file stored in the locker.
+ */
 const FileUploadForm = ({ onUpload, loading }) => {
     const [fileToUpload, setFileToUpload] = useState(null);
     const [isDragActive, setIsDragActive] = useState(false);
     const fileInputRef = useRef(null);
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm();
 
     const onFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -17,9 +33,9 @@ const FileUploadForm = ({ onUpload, loading }) => {
     const handleDrag = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
+        if (e.type === 'dragenter' || e.type === 'dragover') {
             setIsDragActive(true);
-        } else if (e.type === "dragleave") {
+        } else if (e.type === 'dragleave') {
             setIsDragActive(false);
         }
     };
@@ -33,16 +49,16 @@ const FileUploadForm = ({ onUpload, loading }) => {
         }
     };
 
-    const onUploadSubmit = (e) => {
-        e.preventDefault();
+    const onUploadSubmit = (data) => {
         if (!fileToUpload) return;
-        onUpload(fileToUpload);
+        onUpload(fileToUpload, data.passkey);
         setFileToUpload(null);
+        reset();
     };
 
     return (
-        <form onSubmit={onUploadSubmit} className="flex flex-col gap-5 w-full">
-            {/* Hidden Shadcn Input */}
+        <form onSubmit={handleSubmit(onUploadSubmit)} className="flex flex-col gap-5 w-full">
+            {/* Hidden file input */}
             <Input
                 ref={fileInputRef}
                 type="file"
@@ -58,10 +74,10 @@ const FileUploadForm = ({ onUpload, loading }) => {
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current && fileInputRef.current.click()}
                 className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${isDragActive
-                        ? "border-red-500 bg-red-500/5"
-                        : fileToUpload
-                            ? "border-green-500/40 bg-green-500/5"
-                            : "border-white/10 hover:border-white/20 bg-white/5"
+                    ? 'border-red-500 bg-red-500/5'
+                    : fileToUpload
+                        ? 'border-green-500/40 bg-green-500/5'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
             >
                 {fileToUpload ? (
@@ -82,7 +98,7 @@ const FileUploadForm = ({ onUpload, loading }) => {
                                 e.stopPropagation();
                                 setFileToUpload(null);
                             }}
-                            className="mt-2 text-xs text-red-500 hover:text-red-400 underline font-semibold flex items-center gap-1 h-auto p-0"
+                            className="mt-1 text-xs text-red-500 hover:text-red-400 underline font-semibold flex items-center gap-1 h-auto p-0"
                         >
                             <FiX /> Remove file
                         </Button>
@@ -102,6 +118,39 @@ const FileUploadForm = ({ onUpload, loading }) => {
                 )}
             </div>
 
+            {/* Passkey Confirmation */}
+            <div className="space-y-1.5">
+                <Label htmlFor="upload-passkey" className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                    <FiShield size={12} className="text-red-500" />
+                    Confirm Passkey to Secure Upload
+                </Label>
+                <div className="relative flex items-center">
+                    <FiKey className="absolute left-3.5 text-gray-400 z-10" size={16} />
+                    <Input
+                        id="upload-passkey"
+                        type="password"
+                        {...register('passkey', {
+                            required: 'Passkey is required to upload.',
+                            minLength: {
+                                value: 8,
+                                message: 'Passkey must be at least 8 characters.',
+                            },
+                            validate: (v) =>
+                                v.trim().length > 0 || 'Passkey cannot be blank or whitespace only.',
+                        })}
+                        placeholder="Enter your passkey"
+                        className="w-full pl-10 pr-4 py-5 rounded-lg text-sm text-white glass-input outline-none transition-all"
+                        autoComplete="current-password"
+                    />
+                </div>
+                {errors.passkey && (
+                    <p className="text-xs text-red-500 font-semibold">{errors.passkey.message}</p>
+                )}
+                <p className="text-[10px] text-gray-500 leading-relaxed">
+                    Your passkey is verified server-side before the file is stored in your locker.
+                </p>
+            </div>
+
             {/* Submit Button */}
             <Button
                 type="submit"
@@ -111,7 +160,10 @@ const FileUploadForm = ({ onUpload, loading }) => {
                 {loading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                    <span>Upload File</span>
+                    <>
+                        <FiUploadCloud size={15} />
+                        <span>Verify & Upload</span>
+                    </>
                 )}
             </Button>
         </form>
@@ -119,4 +171,3 @@ const FileUploadForm = ({ onUpload, loading }) => {
 };
 
 export default FileUploadForm;
-

@@ -161,7 +161,7 @@ const FileCard = ({ file, isSelected, selectMode, onFileSelect, onSingleDelete }
 };
 
 const Files = () => {
-    const { files, loading, error, fetchUserFiles, handleFileUpload, handleDeleteFiles } = useFiles();
+    const { files, loading, error, fetchUserFiles, handleFileUpload, handleDeleteFiles, checkPasskeyAndRedirect } = useFiles();
 
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
@@ -169,6 +169,11 @@ const Files = () => {
     const [filesToDelete, setFilesToDelete] = useState([]);
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
     const selectMode = selectedFiles.length > 0;
+
+    // Redirect to setup passkey if user doesn't have one configured
+    useEffect(() => {
+        checkPasskeyAndRedirect();
+    }, [checkPasskeyAndRedirect]);
 
     // Auto-unlock lock files session if passkey exists
     useEffect(() => {
@@ -182,8 +187,8 @@ const Files = () => {
         await fetchUserFiles(passkey);
     };
 
-    const handleUpload = async (file) => {
-        await handleFileUpload(file);
+    const handleUpload = async (file, passkey) => {
+        await handleFileUpload(file, passkey);
         setUploadModalOpen(false);
     };
 

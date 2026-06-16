@@ -50,6 +50,7 @@ const Menubar = () => {
             );
             if (res.status === 200) {
                 localStorage.removeItem('token');
+                sessionStorage.removeItem('drive_locker_passkey');
                 setIsLoggedin(false);
                 setUserData(null);
                 toast.success("Logged out successfully");
@@ -138,11 +139,15 @@ const Menubar = () => {
                 <div className="hidden md:flex items-center gap-3">
                     {userData ? (
                         <div className="flex items-center gap-4">
-                            {/* Profile Indicator */}
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-gray-300 text-sm">
+                            {/* Profile Indicator (Clickable Button) */}
+                            <button
+                                onClick={() => navigate("/profile")}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 text-gray-300 hover:text-white text-sm cursor-pointer transition-all"
+                                title="Go to Profile"
+                            >
                                 <FiUser size={14} className="text-red-500" />
                                 <span>{userData.name}</span>
-                            </div>
+                            </button>
                             <Button
                                 onClick={handleLogout}
                                 variant="outline"
@@ -211,10 +216,17 @@ const Menubar = () => {
 
                             {userData ? (
                                 <div className="flex flex-col gap-2 pt-2">
-                                    <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 bg-white/5 text-sm">
+                                    <button
+                                        onClick={() => {
+                                            navigate("/profile");
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/5 text-sm cursor-pointer text-left transition-all"
+                                        title="Go to Profile"
+                                    >
                                         <FiUser size={16} className="text-red-500" />
                                         <span>Logged in as <strong>{userData.name}</strong></span>
-                                    </div>
+                                    </button>
                                     <Button
                                         onClick={() => {
                                             handleLogout();

@@ -50,6 +50,7 @@ export const useAuth = () => {
         try {
             await authApi.logout();
             localStorage.removeItem('token');
+            sessionStorage.removeItem('drive_locker_passkey');
             setIsLoggedin(false);
             setUserData(null);
             toast.success("Logged out successfully.");
@@ -108,6 +109,7 @@ export const useAuth = () => {
         setLoading(true);
         try {
             await authApi.addPasskey(passkey);
+            sessionStorage.setItem('drive_locker_passkey', passkey);
             toast.success("Passkey updated successfully!");
             await getUserdata();
         } catch (err) {
