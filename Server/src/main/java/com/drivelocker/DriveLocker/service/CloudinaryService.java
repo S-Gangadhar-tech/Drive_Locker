@@ -44,7 +44,18 @@ public class CloudinaryService {
 //        tempFile.set=originalFilename;
         try {
             file.transferTo(tempFile);
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(tempFile, ObjectUtils.emptyMap());
+            
+            String originalFilename = file.getOriginalFilename();
+            String resourceType = "auto";
+            if (originalFilename != null) {
+                String lower = originalFilename.toLowerCase();
+                // Cloudinary treats PDFs as images by default and modifies them. We MUST use "raw" for documents.
+                if (lower.endsWith(".pdf") || lower.endsWith(".docx") || lower.endsWith(".doc") || lower.endsWith(".txt") || lower.endsWith(".xls") || lower.endsWith(".xlsx") || lower.endsWith(".ppt") || lower.endsWith(".pptx") || lower.endsWith(".zip")) {
+                    resourceType = "raw";
+                }
+            }
+            
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(tempFile, ObjectUtils.asMap("resource_type", resourceType));
 
             return uploadResult;
         } catch (IOException e) {

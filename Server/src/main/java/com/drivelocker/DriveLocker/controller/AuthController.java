@@ -69,9 +69,9 @@ public class AuthController {
             ResponseCookie cookie = ResponseCookie.from("jwt", jwtToken)
                     .httpOnly(true)
                     .path("/")
-                    .secure(!javaEnvironment.equals("development"))
+                    .secure(true)
                     .maxAge(Duration.ofDays(1))
-                    .sameSite(javaEnvironment.equals("development")?"Strict":"None")
+                    .sameSite("None")
                     .build();
 
             return ResponseEntity.ok()
