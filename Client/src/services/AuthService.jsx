@@ -1,5 +1,5 @@
 // src/services/authService.js
-import axios from "axios";
+import apiClient from './apiClient';
 import { toast } from "react-toastify";
 
 // A reusable function to handle API errors, just like with the notes service
@@ -11,9 +11,9 @@ const handleApiError = (error, defaultMessage) => {
 };
 
 const authService = {
-    isAuthenticated: async (BackendURL) => {
+    isAuthenticated: async () => {
         try {
-            const res = await axios.get(`${BackendURL}/auth/is-authenticated`);
+            const res = await apiClient.get(`/auth/is-authenticated`);
             return res.status === 200 && res.data === true;
         } catch (error) {
             console.error(error.response?.data?.message || "Unable to check authentication state.");
@@ -21,9 +21,9 @@ const authService = {
         }
     },
 
-    getProfile: async (BackendURL) => {
+    getProfile: async () => {
         try {
-            const res = await axios.get(`${BackendURL}/user/profile`);
+            const res = await apiClient.get(`/user/profile`);
             if (res.status === 200) {
                 return res.data;
             } else {

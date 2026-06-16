@@ -1,9 +1,10 @@
-import { createContext, useState, useCallback, useMemo } from "react";
+import { createContext, useState, useCallback, useMemo, useContext } from "react";
 import notesService from "../services/NotesService";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { AppConstants } from "../Util/constants";
+import { AppContext } from "./AppContext";
 
 export const NotesContext = createContext();
 
@@ -32,17 +33,26 @@ export const NotesProvider = ({ children }) => {
         }
     }, [BackendURL, navigate]);
 
+    const { setIsLoggedin } = useContext(AppContext);
+
     const handleGlobalApiError = useCallback(
         async (error) => {
             if (error.response?.status === 401) {
-                toast.info("Please verify your email to use this service");
-                await sendVerificationOtp();
+                const msg = error.response?.data?.message || "";
+                if (msg.includes("verify your account")) {
+                    toast.info("Please verify your email to use this service");
+                    await sendVerificationOtp();
+                } else {
+                    // User is not authenticated (e.g. token expired)
+                    setIsLoggedin(false);
+                    navigate("/login");
+                }
             } else {
                 // The API service already shows a toast, so no need to show another one here.
                 console.error("A global API error occurred:", error);
             }
         },
-        [sendVerificationOtp]
+        [sendVerificationOtp, setIsLoggedin, navigate]
     );
 
     const fetchNotes = useCallback(async () => {

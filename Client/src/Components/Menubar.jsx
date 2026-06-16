@@ -48,6 +48,7 @@ const Menubar = () => {
                 { withCredentials: true }
             );
             if (res.status === 200) {
+                localStorage.removeItem('token');
                 setIsLoggedin(false);
                 setUserData(false);
                 toast.success("Logged out successfully");

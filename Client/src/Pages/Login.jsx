@@ -43,6 +43,7 @@ const Login = () => {
             } else {
                 const res = await axios.post(`${BackendURL}/auth/login`, formData);
                 if (res.status === 200) {
+                    localStorage.setItem('token', res.data.token);
                     setIsLoggedin(true);
                     toast.success("Login success");
                     await getUserdata();

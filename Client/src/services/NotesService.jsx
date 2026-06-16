@@ -23,7 +23,7 @@ const notesService = {
         console.log(newNote + " creating this note");
 
         const response = await apiClient.post("/notes/create-notes", newNote);
-        toast.success("Note created successfully! 📝");
+        toast.success("Note created successfully!");
         return response.data;
     },
 
@@ -39,7 +39,7 @@ const notesService = {
         await apiClient.delete("/notes/delete-notes", {
             data: idsAsString,
         });
-        toast.success("Selected notes deleted successfully! ✔️");
+        toast.success("Selected notes deleted successfully!");
     },
 };
 
