@@ -35,27 +35,31 @@ public class CloudinaryService {
      * Uploads a single MultipartFile to Cloudinary.
      *
      * @param file The MultipartFile to upload.
-     * @return A Map containing the upload result from Cloudinary (e.g., public_id, secure_url).
+     * @return A Map containing the upload result from Cloudinary (e.g., public_id,
+     *         secure_url).
      * @throws IOException if an I/O error occurs.
      */
     public Map<String, Object> uploadFile(@NotNull MultipartFile file) throws IOException {
-        String originalFilename=file.getOriginalFilename();
         File tempFile = Files.createTempFile("temp", Objects.requireNonNull(file.getOriginalFilename())).toFile();
-//        tempFile.set=originalFilename;
+        // tempFile.set=originalFilename;
         try {
             file.transferTo(tempFile);
-            
+
             String originalFilename = file.getOriginalFilename();
             String resourceType = "auto";
             if (originalFilename != null) {
                 String lower = originalFilename.toLowerCase();
-                // Cloudinary treats PDFs as images by default and modifies them. We MUST use "raw" for documents.
-                if (lower.endsWith(".pdf") || lower.endsWith(".docx") || lower.endsWith(".doc") || lower.endsWith(".txt") || lower.endsWith(".xls") || lower.endsWith(".xlsx") || lower.endsWith(".ppt") || lower.endsWith(".pptx") || lower.endsWith(".zip")) {
+                // Cloudinary treats PDFs as images by default and modifies them. We MUST use
+                // "raw" for documents.
+                if (lower.endsWith(".pdf") || lower.endsWith(".docx") || lower.endsWith(".doc")
+                        || lower.endsWith(".txt") || lower.endsWith(".xls") || lower.endsWith(".xlsx")
+                        || lower.endsWith(".ppt") || lower.endsWith(".pptx") || lower.endsWith(".zip")) {
                     resourceType = "raw";
                 }
             }
-            
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(tempFile, ObjectUtils.asMap("resource_type", resourceType));
+
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(tempFile,
+                    ObjectUtils.asMap("resource_type", resourceType));
 
             return uploadResult;
         } catch (IOException e) {
@@ -75,7 +79,7 @@ public class CloudinaryService {
      */
     public Map<String, Object> deleteFiles(List<String> publicIds) throws Exception {
         try {
-//            List<String> publicIds = Collections.singletonList(publicId);
+            // List<String> publicIds = Collections.singletonList(publicId);
             ApiResponse apiResponse = cloudinary.api().deleteResources(publicIds, ObjectUtils.emptyMap());
             return apiResponse;
         } catch (Exception e) {
@@ -91,15 +95,18 @@ public class CloudinaryService {
      * @return A Map containing the resource information from Cloudinary.
      * @throws Exception if a Cloudinary API error occurs.
      */
-//    public Map<String, Object> getFilesByIds(List<String> publicIds) throws Exception {
-//        try {
-//            // The resourcesByIds method is used to get details about specific resources.
-//            // It returns an ApiResponse map containing a list of resources.
-//            ApiResponse apiResponse = cloudinary.api().resourcesByIds(publicIds, ObjectUtils.emptyMap());
-//            return apiResponse;
-//        } catch (Exception e) {
-//            System.err.println("Failed to retrieve files from Cloudinary: " + e.getMessage());
-//            throw new RuntimeException("Failed to retrieve files", e);
-//        }
-//    }
+    // public Map<String, Object> getFilesByIds(List<String> publicIds) throws
+    // Exception {
+    // try {
+    // // The resourcesByIds method is used to get details about specific resources.
+    // // It returns an ApiResponse map containing a list of resources.
+    // ApiResponse apiResponse = cloudinary.api().resourcesByIds(publicIds,
+    // ObjectUtils.emptyMap());
+    // return apiResponse;
+    // } catch (Exception e) {
+    // System.err.println("Failed to retrieve files from Cloudinary: " +
+    // e.getMessage());
+    // throw new RuntimeException("Failed to retrieve files", e);
+    // }
+    // }
 }
