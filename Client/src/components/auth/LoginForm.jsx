@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +21,7 @@ const LoginForm = ({ onSubmit, loading }) => {
                     <Input
                         id="email"
                         type="email"
-                        {...register("email", { 
+                        {...register("email", {
                             required: "Email is required",
                             pattern: {
                                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -38,13 +39,21 @@ const LoginForm = ({ onSubmit, loading }) => {
 
             {/* Password Field */}
             <div className="space-y-2 text-left">
-                <Label htmlFor="password" className="text-xs font-semibold text-gray-300">Password</Label>
+                <div className="flex justify-between items-center">
+                    <Label htmlFor="password" className="text-xs font-semibold text-gray-300">Password</Label>
+                    <Link
+                        to="/reset-password"
+                        className="text-xs font-medium text-red-500 hover:text-red-400 hover:underline transition-colors"
+                    >
+                        Forgot Password?
+                    </Link>
+                </div>
                 <div className="relative flex items-center">
                     <FiLock className="absolute left-3.5 text-gray-400 z-10" size={18} />
                     <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        {...register("password", { 
+                        {...register("password", {
                             required: "Password is required",
                             minLength: {
                                 value: 6,
