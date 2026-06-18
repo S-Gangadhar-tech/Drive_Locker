@@ -44,15 +44,20 @@ public class FileService implements IFileService {
 
     @Override
     public String fileUpload(String email, String passkey, MultipartFile file) {
+        // Strict guard: passkey must be present and non-blank before any DB operation
+        if (passkey == null || passkey.isBlank()) {
+            throw new MissingDetailsException("Passkey is required to upload a file.");
+        }
+
         User user = getAndVerifyUser(email);
 
         PassKey userPasskey = passkeyRepository.findByUserEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Passkey not created for " + email));
+                .orElseThrow(() -> new UserNotFoundException("No passkey configured for this account."));
 
         boolean isMatched = passwordEncoder.matches(passkey, userPasskey.getPassKey());
 
         if (!isMatched) {
-            throw new InvalidPasskeyException("Invalid passkey provided.");
+            throw new InvalidPasskeyException("Invalid passkey. Upload denied.");
         }
 
         try {
@@ -82,21 +87,25 @@ public class FileService implements IFileService {
         }
     }
 
-    // ✅ METHOD UPDATED
     @Override
     public List<File> getUserFiles(String email, String passkey) {
-        // 1. Ensures user is valid and verified
+        // Strict guard: passkey must be present and non-blank before any DB operation
+        if (passkey == null || passkey.isBlank()) {
+            throw new MissingDetailsException("Passkey is required to access files.");
+        }
+
+        // Ensures user is valid and verified
         getAndVerifyUser(email);
 
-        // 2. Fetch the stored passkey for the user
+        // Fetch the stored passkey for the user
         PassKey userPasskey = passkeyRepository.findByUserEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Passkey not created for " + email));
+                .orElseThrow(() -> new UserNotFoundException("No passkey configured for this account."));
 
-        // 3. Match the provided passkey with the stored one
+        // Match the provided passkey with the stored BCrypt hash
         boolean isMatched = passwordEncoder.matches(passkey, userPasskey.getPassKey());
 
         if (!isMatched) {
-            throw new InvalidPasskeyException("Invalid passkey provided. Access to files denied.");
+            throw new InvalidPasskeyException("Invalid passkey. Access to files denied.");
         }
 
         // 4. If passkey is valid, proceed to fetch files

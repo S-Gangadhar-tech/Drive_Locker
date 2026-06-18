@@ -1,16 +1,146 @@
-* {
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Poppins', 'Geist Variable', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(0.08 0.01 250);
+  /* Dark rich slate background */
+  --foreground: oklch(0.98 0.01 250);
+  /* Near white */
+
+  --card: oklch(0.12 0.015 250 / 80%);
+  /* Semi-transparent card background */
+  --card-foreground: oklch(0.95 0.01 250);
+
+  --popover: oklch(0.12 0.015 250);
+  --popover-foreground: oklch(0.95 0.01 250);
+
+  --primary: oklch(0.55 0.22 25);
+  /* Ruby Red Accent */
+  --primary-foreground: oklch(0.99 0.01 250);
+
+  --secondary: oklch(0.18 0.01 250);
+  --secondary-foreground: oklch(0.95 0.01 250);
+
+  --muted: oklch(0.16 0.01 250);
+  --muted-foreground: oklch(0.7 0.01 250);
+
+  --accent: oklch(0.22 0.08 25 / 30%);
+  /* Muted ruby red accent tint */
+  --accent-foreground: oklch(0.95 0.05 25);
+
+  --destructive: oklch(0.6 0.22 27);
+  --destructive-foreground: oklch(0.99 0.01 250);
+
+  --border: oklch(0.22 0.01 250 / 40%);
+  --input: oklch(0.22 0.01 250 / 60%);
+  --ring: oklch(0.55 0.22 25);
+  --radius: 1rem;
+
+  --sidebar: oklch(0.1 0.01 250);
+  --sidebar-foreground: oklch(0.9 0.01 250);
+  --sidebar-primary: oklch(0.55 0.22 25);
+  --sidebar-primary-foreground: oklch(0.99 0.01 250);
+  --sidebar-accent: oklch(0.18 0.01 250);
+  --sidebar-accent-foreground: oklch(0.95 0.01 250);
+  --sidebar-border: oklch(0.22 0.01 250 / 40%);
+  --sidebar-ring: oklch(0.55 0.22 25);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
     box-sizing: border-box;
-    font-family: monospace;
-    /* font-size: 1rem; */
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased font-sans min-h-screen;
+    background-image:
+      radial-gradient(circle at 10% 20%, oklch(0.55 0.22 25 / 8%) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, oklch(0.55 0.22 25 / 5%) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, oklch(0.08 0.01 250) 0%, oklch(0.05 0.01 250) 100%);
+    background-attachment: fixed;
+  }
+
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Glassmorphism custom classes */
+.glass {
+  background: rgba(15, 15, 25, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  background: rgba(20, 20, 35, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-input {
+  background: rgba(10, 10, 20, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px oklch(0.55 0.22 25 / 25%);
 }
 
 .centered-toast {
-    background: rgba(23, 23, 38, 0.95);
-    color: #fff;
-    border-radius: 1rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
-    border: 2px solid #34d399;
-    /* emerald-400 */
+  background: rgba(15, 15, 25, 0.95);
+  color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--primary);
 }
-
-@import "tailwindcss";
