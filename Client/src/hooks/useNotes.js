@@ -8,11 +8,11 @@ import { toast } from "react-toastify";
 
 export const useNotes = () => {
     const { notes, setNotes, isLoading, setLoading } = useContext(NotesContext);
-    const { setIsLoggedin } = useContext(AppContext);
+    const { setIsLoggedin, setGlobalLoading } = useContext(AppContext);
     const navigate = useNavigate();
 
     const sendVerificationOtp = useCallback(async () => {
-        setLoading(true);
+        setGlobalLoading(true);
         try {
             await authApi.sendOtp();
             navigate("/email-verify");
@@ -21,9 +21,9 @@ export const useNotes = () => {
             console.error(error);
             toast.error(error.response?.data?.message || "Failed to send OTP");
         } finally {
-            setLoading(false);
+            setGlobalLoading(false);
         }
-    }, [navigate, setLoading]);
+    }, [navigate, setGlobalLoading]);
 
     const handleGlobalApiError = useCallback(
         async (error) => {
@@ -57,7 +57,7 @@ export const useNotes = () => {
 
     const createNoteItem = useCallback(
         async (newNote) => {
-            setLoading(true);
+            setGlobalLoading(true);
             try {
                 const created = await notesApi.createNote(newNote);
                 setNotes((prev) => [...prev, created]);
@@ -65,15 +65,15 @@ export const useNotes = () => {
             } catch (error) {
                 await handleGlobalApiError(error);
             } finally {
-                setLoading(false);
+                setGlobalLoading(false);
             }
         },
-        [setNotes, handleGlobalApiError, setLoading]
+        [setNotes, handleGlobalApiError, setGlobalLoading]
     );
 
     const updateNoteItem = useCallback(
         async (id, updatedData) => {
-            setLoading(true);
+            setGlobalLoading(true);
             try {
                 const updated = await notesApi.updateNote(id, updatedData);
                 setNotes((prev) => prev.map((note) => (note.id === id ? updated : note)));
@@ -81,15 +81,15 @@ export const useNotes = () => {
             } catch (error) {
                 await handleGlobalApiError(error);
             } finally {
-                setLoading(false);
+                setGlobalLoading(false);
             }
         },
-        [setNotes, handleGlobalApiError, setLoading]
+        [setNotes, handleGlobalApiError, setGlobalLoading]
     );
 
     const deleteNotesItems = useCallback(
         async (idsToDelete) => {
-            setLoading(true);
+            setGlobalLoading(true);
             try {
                 await notesApi.deleteNotes(idsToDelete);
                 setNotes((prev) => prev.filter((note) => !idsToDelete.includes(note.id)));
@@ -97,10 +97,10 @@ export const useNotes = () => {
             } catch (error) {
                 await handleGlobalApiError(error);
             } finally {
-                setLoading(false);
+                setGlobalLoading(false);
             }
         },
-        [setNotes, handleGlobalApiError, setLoading]
+        [setNotes, handleGlobalApiError, setGlobalLoading]
     );
 
     return {

@@ -10,6 +10,7 @@ export const AppContextProvider = (props) => {
     const [isLoggedin, setIsLoggedin] = useState(false);
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [globalLoading, setGlobalLoading] = useState(false);
 
     axios.defaults.withCredentials = true;
 
@@ -61,6 +62,8 @@ export const AppContextProvider = (props) => {
         setUserData,
         isLoading,
         setIsLoading,
+        globalLoading,
+        setGlobalLoading,
     };
 
     return (

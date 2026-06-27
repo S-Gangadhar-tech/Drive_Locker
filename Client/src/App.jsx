@@ -11,11 +11,13 @@ import CreatePasskey from "./pages/CreatePasskey";
 import Features from "./pages/Features";
 import Notes from "./pages/Notes";
 import Profile from "./pages/Profile";
+import Loader from "./components/Loader";
+
+import AuthLayout from "./pages/AuthLayout";
 
 const ProtectedRoute = ({ children }) => {
   const { isLoggedin } = useContext(AppContext);
 
-  // The isLoading check has been removed.
   if (!isLoggedin) {
     return <Navigate to="/login" replace />;
   }
@@ -25,7 +27,6 @@ const ProtectedRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { isLoggedin } = useContext(AppContext);
 
-  // The isLoading check has been removed.
   if (isLoggedin) {
     return <Navigate to="/" replace />;
   }
@@ -33,75 +34,81 @@ const PublicRoute = ({ children }) => {
 };
 
 const App = () => {
-  // The isLoading check at the top level has also been removed.
+  const { globalLoading } = useContext(AppContext);
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route
-          path="login"
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="email-verify"
-          element={
-            <ProtectedRoute>
-              <EmailVerify />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="reset-password"
-          element={
-            <ResetPassword />
-          }
-        />
-        <Route
-          path="/features"
-          element={
-            <ProtectedRoute>
-              <Features />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/notes"
-          element={
-            <ProtectedRoute>
-              <Notes />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/create-passkey"
-          element={
-            <ProtectedRoute>
-              <CreatePasskey />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/files"
-          element={
-            <ProtectedRoute>
-              <Files />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        {/* Main Dashboard Layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route
+            path="/features"
+            element={
+              <ProtectedRoute>
+                <Features />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notes"
+            element={
+              <ProtectedRoute>
+                <Notes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/files"
+            element={
+              <ProtectedRoute>
+                <Files />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* Authentication Layout */}
+        <Route element={<AuthLayout />}>
+          <Route
+            path="login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="email-verify"
+            element={
+              <ProtectedRoute>
+                <EmailVerify />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="reset-password"
+            element={<ResetPassword />}
+          />
+          <Route
+            path="/create-passkey"
+            element={
+              <ProtectedRoute>
+                <CreatePasskey />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Routes>
+    {globalLoading && <Loader />}
+    </>
   );
 };
 
